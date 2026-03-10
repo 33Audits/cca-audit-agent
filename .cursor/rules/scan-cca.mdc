@@ -22,7 +22,7 @@ alwaysApply: false
   ╚═════╝ ╚═════╝╚═╝  ╚═╝    ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝
 
  ◈ Single-pass audit engine for Uniswap CCA
- ◈ 8 core vectors ∙ 6 integration vectors
+ ◈ 9 core vectors ∙ 6 integration vectors
 ```
 
 You are a smart contract security auditor specializing in Uniswap's Continuous Clearing Auction (CCA). Scan Solidity contracts for CCA vulnerabilities — both in CCA's own code (forks, deployments) and in contracts that integrate with CCA. Auto-detect what's in scope based on what's present.
@@ -39,7 +39,7 @@ Read all in-scope `.sol` files. Prioritize the main contract files first, then l
 
 ### Step 2 — Triage (Vector Scan)
 
-For each of the 14 CCA vectors below (VC1-VC8 core, VI1-VI6 integration), classify into:
+For each of the 14 CCA vectors below (VC1-VC9 core, VI1-VI6 integration), classify into:
 - **Skip**: the construct AND underlying concept are both absent.
 - **Borderline**: no direct match but the concept could manifest differently. 1-sentence relevance check — name the specific function AND describe the exploit. Promote only if both are concrete, otherwise drop.
 - **Survive**: the construct or pattern is clearly present.
@@ -129,6 +129,11 @@ CONFIRM IF: claimTokens has no access control, tokensFilled zeroed without emitt
 Grep: 0x0000ccaDF55C911a2FbC0BB9d2942Aa77c6FAa1D
 v1.0.0-candidate factory permanently locks bids in edge cases. Fixed in v1.1.0 (0xCCccCcCAE7503Cac057829BF2811De42E16e0bD5).
 CONFIRM IF: v1.0.0 factory address appears in source or config.
+
+**VC9 — TSTORE-POISON**
+Grep: transient, delete, pragma solidity 0.8.28/29/30/31/32/33, via-ir
+Solidity compiler bug (0.8.28–0.8.33, --via-ir only). The compiler caches storageSetToZeroFunction by type name without distinguishing sstore vs tstore. When a contract has both a persistent and transient variable of the same type and both are deleted, the first delete poisons the cache — all subsequent deletes of that type use the wrong opcode. Persistent delete may silently tstore (value returns next tx) or transient delete may sstore (nukes persistent slot). Array element clearing for bool[], address[], uint8[] all funnel to the same uint256 zeroing function, widening the collision surface. CCA itself is on 0.8.26 but forks upgrading to 0.8.28+ for transient keyword gas savings are directly exposed. Ref: hexens.io/research/solidity-compiler-bug-tstore-poison
+CONFIRM IF: pragma 0.8.28–0.8.33 AND uses both transient + persistent of same type AND both deleted AND compiles with --via-ir.
 
 ### Integration Vectors (bugs in code that uses CCA)
 

@@ -26,7 +26,7 @@ Runs two parallel analysis agents against your Solidity codebase:
 
 | Agent | Strategy | What it catches |
 |-------|----------|-----------------|
-| **Vector Scan** | Systematic triage of 14 known CCA vulnerability patterns | Known footguns — fast, cheap, high recall |
+| **Vector Scan** | Systematic triage of 15 known CCA vulnerability patterns | Known footguns — fast, cheap, high recall |
 | **Adversarial Reasoning** | Free-form adversarial bug hunting | Novel bugs, logic errors, economic exploits the vector list doesn't cover |
 
 Results are deduplicated, scored by confidence, and presented as a single report.
@@ -45,6 +45,7 @@ Results are deduplicated, scored by confidence, and presented as a single report
 | VC6 | Low-decimal / fee-on-transfer silent misallocation | Medium |
 | VC7 | Permissionless claim zeroing | Critical (integration impact) |
 | VC8 | v1.0.0 bid locking bug | Critical (if applicable) |
+| VC9 | TSTORE poison (solc 0.8.28–0.8.33 via-ir) | Critical (if applicable) |
 
 **Integration vectors** (bugs in code that calls into CCA):
 
@@ -146,7 +147,7 @@ Claude Code gets the best results because it runs two agents with different anal
 
 1. **Prepare** — Finds all `.sol` files (excludes `test/`, `script/`, `lib/`), concatenates them into a temporary bundle
 2. **Double pass** — Launches both agents in parallel:
-   - Vector Scan agent reads the bundle, triages all 14 vectors, drops irrelevant ones in 1 line each, deep-analyzes survivors
+   - Vector Scan agent reads the bundle, triages all 15 vectors, drops irrelevant ones in 1 line each, deep-analyzes survivors
    - Adversarial Reasoning agent reads all files, maps the CCA interaction surface, reasons adversarially about every call and state read
 3. **Merge** — Deduplicates findings, re-numbers, sorts by confidence, presents the report
 
@@ -183,7 +184,7 @@ and zero every user's vesting amount.
 ## How it stays token-efficient
 
 - **Bundle read**: All source is concatenated into one file — agents read it in parallel chunks on turn 1, no repeated file I/O
-- **Fast triage**: 14 vectors are classified in a single pass using grep signatures. Irrelevant vectors are dropped in 1 structured line each
+- **Fast triage**: 15 vectors are classified in a single pass using grep signatures. Irrelevant vectors are dropped in 1 structured line each
 - **FP gate**: Every potential finding must pass 3 checks (concrete path, reachable, impactful) before expansion. Kills false positives before they waste tokens
 - **Hard stop**: Agents do not revisit eliminated vectors or re-scan
 
@@ -214,6 +215,10 @@ The skill file at `.claude/commands/scan-cca.md` is self-contained. You can:
 - [33 Audits — CCA Audit Thread](https://x.com/33audits/status/2029781103435768165) — Summary of CCA-specific attack vectors
 - [33 Audits — Flow Protocol Audit Report (PDF)](https://github.com/leeftk/audit-reports/blob/main/private%20audits/audit-report-flow.pdf) — Private audit of a protocol built on CCA where the `tokensFilled` zeroing bug was first identified
 - [33audits.xyz](https://www.33audits.xyz/) — Smart contract auditing services
+
+### Compiler / Toolchain
+
+- [Hexens — TSTORE Poison: Solidity Compiler Bug](https://hexens.io/research/solidity-compiler-bug-tstore-poison) — Cache key collision in solc 0.8.28–0.8.33 via-ir that swaps sstore/tstore opcodes on delete
 
 ### Uniswap / CCA
 

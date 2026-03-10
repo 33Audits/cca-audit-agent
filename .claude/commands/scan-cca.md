@@ -28,7 +28,7 @@ Before doing anything else, print this banner exactly as shown:
   ╚═════╝ ╚═════╝╚═╝  ╚═╝    ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝
 
  ◈ Double-pass audit engine for Uniswap CCA
- ◈ 8 core vectors ∙ 6 integration vectors ∙ parallel analysis
+ ◈ 9 core vectors ∙ 6 integration vectors ∙ parallel analysis
 ```
 
 ### Step 1 — Prepare
@@ -122,6 +122,11 @@ Grep: 0x0000ccaDF55C911a2FbC0BB9d2942Aa77c6FAa1D
 v1.0.0-candidate factory had a rare-case bug permanently locking bids. Fixed in v1.1.0 (factory 0xCCccCcCAE7503Cac057829BF2811De42E16e0bD5). If the v1.0.0 address appears in the codebase, the risk is live.
 CONFIRM IF: The v1.0.0 factory address literal appears in source, deployment config, or constructor arguments.
 
+VC9 — TSTORE-POISON
+Grep: transient, delete, pragma solidity 0.8.28, pragma solidity 0.8.29, pragma solidity 0.8.30, pragma solidity 0.8.31, pragma solidity 0.8.32, pragma solidity 0.8.33, via-ir
+Solidity compiler bug (0.8.28–0.8.33, --via-ir only). The MultiUseYulFunctionCollector caches storageSetToZeroFunction by type name only — without distinguishing sstore vs tstore domains. When a contract has both a persistent and a transient variable of the same type, and both are deleted, the first delete encountered during IR generation poisons the cache. All subsequent deletes of that type use the wrong opcode. A persistent delete may silently use tstore (value returns next tx), or a transient delete may use sstore (nukes a persistent slot). Collision surface is wider than expected — array element clearing for bool[], address[], uint8[] all funnel to the same uint256 zeroing function. CCA itself is on 0.8.26, but forks upgrading to 0.8.28+ to use the transient keyword for gas optimization are directly exposed. Ref: https://hexens.io/research/solidity-compiler-bug-tstore-poison
+CONFIRM IF: (1) pragma solidity is 0.8.28–0.8.33 AND (2) contract uses both transient and persistent variables of the same type AND (3) both are deleted somewhere in the contract AND (4) project compiles with --via-ir. All four conditions must hold.
+
 === INTEGRATION VECTORS (bugs in code that uses CCA) ===
 
 VI1 — STALE-TOKENSFILLED-READ
@@ -204,7 +209,7 @@ CRITICAL OUTPUT RULE: Return findings ONLY in your final text response. Do NOT w
 WORKFLOW:
 1. Read the bundle file at {BUNDLE_PATH} in parallel 1000-line chunks on your first turn. Total lines: {LINE_COUNT}. Compute offsets and issue all Read calls at once. These are your ONLY file reads.
 
-2. TRIAGE PASS. For each vector (VC1-VC8 core, VI1-VI6 integration), classify into Skip / Borderline / Survive:
+2. TRIAGE PASS. For each vector (VC1-VC9 core, VI1-VI6 integration), classify into Skip / Borderline / Survive:
    - Skip: the construct AND underlying concept are both absent from this codebase.
    - Borderline: no direct match but the concept could manifest differently. 1-sentence check: name the specific function where it manifests AND describe the exploit. Promote only if both are concrete, otherwise drop.
    - Survive: the construct or pattern is clearly present.

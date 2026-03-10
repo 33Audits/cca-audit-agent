@@ -70,13 +70,13 @@ The scanner auto-detects whether it's looking at CCA core code, integration code
 # From your project root
 mkdir -p .claude/commands
 curl -o .claude/commands/scan-cca.md \
-  https://raw.githubusercontent.com/<owner>/scan-cca/main/.claude/commands/scan-cca.md
+  https://raw.githubusercontent.com/33Audits/cca-audit-agent/main/.claude/commands/scan-cca.md
 ```
 
 ### Option B: Clone the repo and point at your code
 
 ```bash
-git clone https://github.com/<owner>/scan-cca.git
+git clone https://github.com/33Audits/cca-audit-agent.git
 cd scan-cca
 claude
 # Then run: /scan-cca /path/to/your/solidity/project
@@ -167,12 +167,19 @@ The skill file at `.claude/commands/scan-cca.md` is self-contained. You can:
 
 ## References
 
-Vulnerability vectors are derived from:
+### 33 Audits
+
+- [33 Audits — Security Considerations for CCA Auditors](https://33audits.hashnode.dev/security-considerations-for-auditors) — Original research on CCA integration vulnerabilities, including the `claimTokens` zeroing vector discovered during a private audit
+- [33 Audits — CCA Audit Thread](https://x.com/33audits/status/2029781103435768165) — Summary of CCA-specific attack vectors
+- [33 Audits — Flow Protocol Audit Report (PDF)](https://github.com/leeftk/audit-reports/blob/main/private%20audits/audit-report-flow.pdf) — Private audit of a protocol built on CCA where the `tokensFilled` zeroing bug was first identified
+- [33audits.xyz](https://www.33audits.xyz/) — Smart contract auditing services
+
+### Uniswap / CCA
+
 - [Uniswap CCA Technical Documentation](https://github.com/Uniswap/continuous-clearing-auction/blob/main/docs/TechnicalDocumentation.md)
 - [Uniswap CCA CHANGELOG](https://github.com/Uniswap/continuous-clearing-auction/blob/main/CHANGELOG.md)
 - [Spearbit, OpenZeppelin, and ABDK audits](https://github.com/Uniswap/continuous-clearing-auction/blob/main/docs/audits/README.md)
 - [Cantina bug bounty](https://cantina.xyz/code/f9df94db-c7b1-434b-bb06-d1360abdd1be/overview)
-- Independent audit findings from protocols built on CCA
 
 ## License
 

@@ -58,7 +58,7 @@ Summary header (files, lines, finding count by severity), then findings sorted b
 
 **VC8 — BID-LOCK-V1**: v1.0.0 factory (0x0000ccaDF55C911a2FbC0BB9d2942Aa77c6FAa1D) locks bids. CONFIRM IF: v1.0.0 address in codebase.
 
-**VC9 — TSTORE-POISON**: Solidity compiler bug (0.8.28–0.8.33, --via-ir). Compiler caches storageSetToZeroFunction by type name without distinguishing sstore vs tstore. Contract with both persistent + transient variable of same type where both are deleted → first delete poisons cache, wrong opcode for all subsequent deletes. Persistent delete may tstore (value returns next tx), transient delete may sstore (nukes persistent slot). Array element clearing widens collision surface. CCA forks upgrading from 0.8.26 to 0.8.28+ are directly exposed. CONFIRM IF: pragma 0.8.28–0.8.33 AND transient + persistent same type AND both deleted AND --via-ir.
+**VC9 — TSTORE-POISON**: Solidity compiler bug (0.8.28–0.8.33, --via-ir). Compiler caches storageSetToZeroFunction by type name without distinguishing sstore vs tstore. Contract with both persistent + transient variable of same type where both are deleted → first delete poisons cache, wrong opcode for all subsequent deletes. Persistent delete may tstore (value returns next tx), transient delete may sstore (nukes persistent slot). Array element clearing widens collision surface. CCA forks upgrading from 0.8.26 and integration contracts built on CCA using 0.8.28+ are directly exposed. CONFIRM IF: pragma 0.8.28–0.8.33 AND transient + persistent same type AND both deleted AND --via-ir.
 
 ## Integration Vectors (code that uses CCA)
 

@@ -37,6 +37,11 @@ Reason freely about the code beyond the checklist. Focus on: logic errors in cle
 
 For integrations: What if a third party calls claimTokens first? What if CCA state changes between read and use? What if auction params are malicious? What if a searcher front/back-runs transactions?
 
+**Silent misconfigurations** (no attacker required — missing validation that silently produces wrong results. Nothing reverts, nothing breaks. The math just quietly gives wrong answers for a class of inputs nobody rejects):
+- No decimal floor check on auction token: tokens below 6 decimals lose significant value to Q96 rounding. A 2-decimal token can lose 90%+ per operation. Auction proceeds normally — just silently misallocates.
+- No minimum mps on final auction step: near-zero last-step issuance makes final clearing price trivially manipulable.
+- No bounds on floorPrice relative to tick extremes: extreme values create auctions where math works but economics are broken.
+
 ### Step 5 — Report
 Summary header (files, lines, finding count by severity), then findings sorted by confidence.
 
